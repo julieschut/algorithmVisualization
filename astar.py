@@ -90,6 +90,11 @@ class Node:
 	def __lt__(self, other):
 		return False
 
+def reconstruct_path(came_from, current, draw):
+	while current in came_from: # Traverse path backwards
+		current = came_from[current]
+		current.make_path()
+		draw()
 
 # Heuristic function: the Manhattan distance between two nodes. 
 def manhattan_heur(node1, node2):
@@ -121,7 +126,9 @@ def astar(draw, grid, start, end):
 		open_set_hash.remove(current)
 
 		if current == end:
-			pass
+			reconstruct_path(came_from, end, draw)
+			start.make_start_node()
+			end.make_end_node()
 			return True
 
 		for neighbour in current.neighbours:
@@ -195,7 +202,6 @@ def main(win, width):
 	end = None
 
 	run = True
-	started = False
 
 	while run: 
 		draw(win, grid, ROWS, width)
@@ -203,9 +209,6 @@ def main(win, width):
 
 			if event.type == pygame.QUIT:
 				run = False
-
-			if started: # While the algorithms run, don't allow input
-				continue
 
 			if pygame.mouse.get_pressed()[0]: # left click
 				position = pygame.mouse.get_pos()
@@ -240,6 +243,12 @@ def main(win, width):
 						for node in row:
 									node.update_adjacent_nodes(grid)
 					astar(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+
+				if event.key == pygame.K_c:
+					start = None
+					end = None
+					grid = make_grid(ROWS, width)
 
 	pygame.quit()
 
