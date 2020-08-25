@@ -4,7 +4,6 @@ from queue import PriorityQueue
 
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
-
 pygame.display.set_caption("A* Algorithm visualization")
 
 
@@ -91,25 +90,25 @@ class Node:
 	def __lt__(self, other):
 		return False
 
+
 # Heuristic function: the Manhattan distance between two nodes. 
 def manhattan_heur(node1, node2):
 	x1, y1 = node1
 	x2, y2 = node2
 	return abs(x1 - x2) + abs(y1 - y2)
 
+
 def astar(draw, grid, start, end):
-	
-	count = 0 
+	count = 0
 	open_set = PriorityQueue()
-	open_set.put((0, count, start)) # count is a tiebreaker for nodes with same score
+	open_set.put((0, count, start))
+	came_from = {}
 	
-	came_from = {} # keeps track of what node the optimal path came from
+	g_score = {node: float("inf") for row in grid for node in row}
+	g_score[start] = 0
 	
-	g_score = {node: float("inf") for row in grid for node in row} # dictionary comprehension
-	g_score[start] = 0 
-	
-	f_score = {node: float("inf") for row in grid for node in row} # dictionary comprehension
-	f_score[start] = manhattan_heur(start.get_position(), end.get_position()) # The estimate of the distance
+	f_score = {node: float("inf") for row in grid for node in row}
+	f_score[start] = manhattan_heur(start.get_position(), end.get_position())
 
 	open_set_hash = {start}
 
@@ -119,16 +118,14 @@ def astar(draw, grid, start, end):
 				pygame.quit()
 
 		current = open_set.get()[2]
-		open_set_hash.remove(current) # sync with PiorityQueue
+		open_set_hash.remove(current)
 
-		if current == end:	
-			pass #make path
-			return True 
-
+		if current == end:
+			pass
+			return True
 
 		for neighbour in current.neighbours:
-
-			temp_g_score = g_score[current] + 1 # assuming all edges are 1 
+			temp_g_score = g_score[current] + 1
 
 			if temp_g_score < g_score[neighbour]:
 				came_from[neighbour] = current
@@ -137,16 +134,13 @@ def astar(draw, grid, start, end):
 				
 				if neighbour not in open_set_hash:
 					count += 1
-					open_set.put((f_score[neighbour]), count, neighbour)
+					open_set.put((f_score[neighbour], count, neighbour))
 					open_set_hash.add(neighbour)
-
 					neighbour.make_optional()
 
-		
 		draw()
 
-
-		if current != start: 
+		if current != start:
 			current.evaluate()
 
 	return False
@@ -246,9 +240,6 @@ def main(win, width):
 						for node in row:
 									node.update_adjacent_nodes(grid)
 					astar(lambda: draw(win, grid, ROWS, width), grid, start, end)
-
-
-
 
 	pygame.quit()
 
