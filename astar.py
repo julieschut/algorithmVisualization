@@ -152,6 +152,61 @@ def astar(draw, grid, start, end):
 
 	return False
 
+
+
+
+def dijkstra(draw, grid, start, end):
+	count = 0
+	open_set = PriorityQueue()
+	open_set.put((0, count, start))
+	came_from = {}
+	
+	g_score = {node: float("inf") for row in grid for node in row}
+	g_score[start] = 0
+	
+	f_score = {node: float("inf") for row in grid for node in row}
+	f_score[start] = g_score[start]#manhattan_heur(start.get_position(), end.get_position())
+
+	open_set_hash = {start}
+
+	while not open_set.empty():
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+
+		current = open_set.get()[2]
+		open_set_hash.remove(current)
+
+		if current == end:
+			reconstruct_path(came_from, end, draw)
+			start.make_start_node()
+			end.make_end_node()
+			return True
+
+		for neighbour in current.neighbours:
+			temp_g_score = g_score[current] + 1
+
+			if temp_g_score < g_score[neighbour]:
+				came_from[neighbour] = current
+				g_score[neighbour] = temp_g_score
+				f_score[neighbour] = temp_g_score #temp_g_score + manhattan_heur(neighbour.get_position(), end.get_position())
+				
+				if neighbour not in open_set_hash:
+					count += 1
+					open_set.put((f_score[neighbour], count, neighbour))
+					open_set_hash.add(neighbour)
+					neighbour.make_optional()
+
+		draw()
+
+		if current != start:
+			current.evaluate()
+
+	return False
+
+
+
+
 def initialize_grid(rows, width):
 	grid = []
 	gap = width // rows
@@ -238,11 +293,19 @@ def main(win, width):
 					end = None 
 
 			if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_SPACE and start and end:
+				
+				if event.key == pygame.K_a and start and end:
 					for row in grid:
 						for node in row:
 									node.update_adjacent_nodes(grid)
 					astar(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+
+				if event.key == pygame.K_d and start and end:
+					for row in grid:
+						for node in row:
+									node.update_adjacent_nodes(grid)
+					dijkstra(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
 
 				if event.key == pygame.K_c:
@@ -253,7 +316,7 @@ def main(win, width):
 	pygame.quit()
 
 
-
 main(WIN, WIDTH)
+
 
 
